@@ -6,9 +6,9 @@
 
 ## Overview ##
 
-In this assignment, you will learn how to implement and optimize kernels for the [AWS Trainium](https://aws.amazon.com/ai/machine-learning/trainium/) architecture, which features multiple tensor-oriented accelerated processing engines as well as software-managed on-chip storage that provides these engines high-bandwidth access to data. 
+In this assignment, you will learn how to implement and optimize kernels for the [AWS Trainium2](https://aws.amazon.com/ai/machine-learning/trainium/) architecture, which features multiple tensor-oriented accelerated processing engines as well as software-managed on-chip storage that provides these engines high-bandwidth access to data. 
 
-The assignment is organized into two parts.  In part 1 you'll familiarize yourself with the Trainium architecture and data movement patterns by studying some simple kernels for vector addition and writing your own matrix transpose kernel. In part 2 you will implement a fused convolution layer for Trainium.
+The assignment is organized into two parts.  In part 1 you'll familiarize yourself with the Trainium architecture and data movement patterns by studying some simple kernels for vector addition and writing your own matrix transpose kernel. In part 2 you will implement a fused convolution+maxpool layer on Trainium2.
 
 Overall, this assignment will:
 
