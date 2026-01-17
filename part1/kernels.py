@@ -66,7 +66,7 @@ def vector_add_tiled(a_vec, b_vec):
     M = a_vec.shape[0]
     
     # TODO: You should modify this variable for Step 1
-    ROW_CHUNK = 1
+    ROW_CHUNK = 128
 
     # Loop over the total number of chunks, we can use affine_range
     # because there are no loop-carried dependencies
@@ -102,7 +102,8 @@ def vector_add_stream(a_vec, b_vec):
     M = a_vec.shape[0]
 
     # TODO: You should modify this variable for Step 2a
-    FREE_DIM = 2
+    # For a vector of size 25600, we reshape to (128, 200), so FREE_DIM = 200 minimizes DMA transfers
+    FREE_DIM = 200
 
     # The maximum size of our Partition Dimension
     PARTITION_DIM = 128
@@ -148,5 +149,23 @@ def matrix_transpose(a_tensor):
     assert M % tile_dim == N % tile_dim == 0, "Matrix dimensions not divisible by tile dimension!"
 
     # TODO: Your implementation here. The only compute instruction you should use is `nisa.nc_transpose`.
+    # Loop over tiles of size tile_dim x tile_dim (128x128)
+    for i in nl.affine_range(M // tile_dim):
+        for j in nl.affine_range(N // tile_dim):
+            # Load input tile from HBM to SBUF
+            a_tile = nl.ndarray((tile_dim, tile_dim), dtype=a_tensor.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(src=a_tensor[i * tile_dim : (i + 1) * tile_dim,
+                                    j * tile_dim : (j + 1) * tile_dim], dst=a_tile)
+
+            # Transpose the tile using Tensor Engine (result goes to PSUM)
+            a_transposed_psum = nisa.nc_transpose(a_tile)
+
+            # Copy result from PSUM to SBUF
+            a_transposed_sbuf = nisa.tensor_copy(a_transposed_psum)
+
+            # Store transposed tile to HBM
+            nisa.dma_copy(src=a_transposed_sbuf,
+                         dst=out[j * tile_dim : (j + 1) * tile_dim,
+                               i * tile_dim : (i + 1) * tile_dim])
 
     return out
